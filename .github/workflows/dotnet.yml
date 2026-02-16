@@ -7,32 +7,50 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
+
+    # 1️⃣ Checkout source code
+    - name: Checkout code
       uses: actions/checkout@v3
 
+    # 2️⃣ Setup .NET 8 SDK
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
 
+    # 3️⃣ Restore dependencies
     - name: Restore
       run: dotnet restore
 
+    # 4️⃣ Build project
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
+    # 5️⃣ Run tests
     - name: Test
       run: dotnet test --no-build --verbosity normal
 
+    # 6️⃣ Publish application
     - name: Publish
-      run: dotnet publish -c Release -o ./publish
+      run: dotnet publish --configuration Release --output publish
 
-    - name: Upload Artifact
+    # 7️⃣ Upload artifact (optional but recommended)
+    - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
         name: app
-        path: ./publish
+        path: publish
+
+    # 8️⃣ Deploy to FTP Server
+    - name: Deploy via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: publish/
+        server-dir: ${{ secrets.FTP_TARGET_DIR }}
