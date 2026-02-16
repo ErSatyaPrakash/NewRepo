@@ -3,7 +3,7 @@ name: .NET Core CI/CD
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 jobs:
@@ -11,36 +11,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v3
 
-    # 1️⃣ Checkout Repository
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    # 2️⃣ Setup .NET SDK
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '8.0.x'
 
-    # 3️⃣ Restore Dependencies
     - name: Restore
       run: dotnet restore
 
-    # 4️⃣ Build Project
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
-    # 5️⃣ Run Tests
     - name: Test
       run: dotnet test --no-build --verbosity normal
 
-    # 6️⃣ Publish Project
     - name: Publish
-      run: dotnet publish --configuration Release --output ./publish
+      run: dotnet publish -c Release -o ./publish
 
-    # 7️⃣ Upload Build Artifact
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: app
-        path: publish
+        path: ./publish
